@@ -34,7 +34,7 @@ labels = open(script_dir + '/coco.names').read().strip().split("\n")
 
 commands = open("./images/commands.txt", "a")
 
-# model = k.models.load_model(r'C:\Users\pietr\Desktop\WindowsNoEditor\PythonAPI\examples\seguidor.h5')
+model = k.models.load_model(r'C:\Users\pietr\Desktop\carla9.10\PythonAPI\examples\seguidor2.h5')
 
 def to_bgra_array(image):
     """Convert a CARLA raw image to a BGRA np array."""
@@ -70,52 +70,50 @@ def depth_to_logarithmic_grayscale(image):
     return np.repeat(logdepth[:, :, np.newaxis], 3, axis=2)
 
 def process_right(image):
-	timestamp = datetime.now().timestamp()
-	image.save_to_disk('./images/right/right-' + str(timestamp) + '.jpg')
-	global leftData, vehicle, depthmap
-	leftData.save_to_disk('./images/left/left-' + str(timestamp) + '.jpg')
-	cc = carla.ColorConverter.LogarithmicDepth
-	depthmap.save_to_disk('./images/depth/depth-' + str(timestamp) + '.jpg', cc)
-	controls = vehicle.get_control()
-	commands.write(str(timestamp) + ';' + str(controls.throttle) + ';' + str(controls.steer) + ';' + str(controls.brake) + '\n')
+	# timestamp = datetime.now().timestamp()
+	# image.save_to_disk('./images/right/right-' + str(timestamp) + '.jpg')
+	# global leftData, vehicle, depthmap
+	# leftData.save_to_disk('./images/left/left-' + str(timestamp) + '.jpg')
+	# cc = carla.ColorConverter.LogarithmicDepth
+	# depthmap.save_to_disk('./images/depth/depth-' + str(timestamp) + '.jpg', cc)
+	# controls = vehicle.get_control()
+	# commands.write(str(timestamp) + ';' + str(controls.throttle) + ';' + str(controls.steer) + ';' + str(controls.brake) + '\n')
 
 	
-	# if leftData != None and depthmap != None:
-	# 	global script_dir, labels, model
+	if leftData != None and depthmap != None:
+		global script_dir, labels, model
 		
-	# 	rightImage = np.array(image.raw_data).reshape((IM_HEIGHT, IM_WIDTH, 4))
-	# 	rgbRightImage = rightImage[:, :, :3]
-	# 	grayRightImage = cv2.cvtColor(rightImage, cv2.COLOR_BGR2GRAY)
+		rightImage = np.array(image.raw_data).reshape((IM_HEIGHT, IM_WIDTH, 4))
+		rgbRightImage = rightImage[:, :, :3]
+		grayRightImage = cv2.cvtColor(rightImage, cv2.COLOR_BGR2GRAY)
 		
-	# 	leftImage = np.array(leftData.raw_data).reshape((IM_HEIGHT, IM_WIDTH, 4))
-	# 	grayLeftImage = cv2.cvtColor(leftImage, cv2.COLOR_BGR2GRAY)
+		leftImage = np.array(leftData.raw_data).reshape((IM_HEIGHT, IM_WIDTH, 4))
+		grayLeftImage = cv2.cvtColor(leftImage, cv2.COLOR_BGR2GRAY)
 		
-	# 	dephtMapImg = np.array(depthmap.raw_data).reshape((IM_HEIGHT, IM_WIDTH, 4))
-	# 	dephtMapImg = depth_to_logarithmic_grayscale(depthmap)
+		# dephtMapImg = np.array(depthmap.raw_data).reshape((IM_HEIGHT, IM_WIDTH, 4))
+		dephtMapImg = depth_to_logarithmic_grayscale(depthmap)
 
-	# 	imgProcess = ProcessamentoImagem(grayLeftImage, rgbRightImage, grayRightImage)
+		imgProcess = ProcessamentoImagem(grayLeftImage, rgbRightImage, grayRightImage)
 
-	# 	dephtMapImg = imgProcess.generate_depthmap()
+		# dephtMapImg = imgProcess.generate_depthmap()
 
-	# 	dephtMapImg = cv2.normalize(dephtMapImg, None, alpha = 0, beta = 1, norm_type=cv2.NORM_MINMAX, dtype=cv2.CV_32F)
+		mockDephtMapImg = dephtMapImg[:, :, 0]
+		# dephtMapImg = cv2.normalize(dephtMapImg, None, alpha = 0, beta = 1, norm_type=cv2.NORM_MINMAX, dtype=cv2.CV_32F)
+		mockDephtMapImg = cv2.normalize(mockDephtMapImg, None, alpha = 0, beta = 1, norm_type=cv2.NORM_MINMAX, dtype=cv2.CV_32F)
 
-	# 	imgArray = np.array([rgbRightImage, dephtMapImg])
-	# 	print(imgArray.shape)
-	# 	imgArray = np.moveaxis(imgArray, 0, 3)
-	# 	imgArray = imgArray[:, :, 0]
-	# 	if imgArray.shape == (480, 640, 2):
-	# 		try:
-	# 			print('trying -> ' + str(imgArray.shape))
-	# 			prediction = model.predict(imgArray)
-	# 			print(prediction)
-	# 		except:
-	# 			print('failed -> ' + str(imgArray.shape))
+		imgArray = np.array([grayRightImage, mockDephtMapImg])
+		imgArray = np.expand_dims(imgArray, axis=0)
+		imgArray = np.moveaxis(imgArray, 1, 3)
+		if imgArray.shape == (1, 480, 640, 2):
+			prediction = model.predict(imgArray)
+			print(prediction)
 
-	# 	classifiedImg = imgProcess.generate_bounding_boxes(script_dir+'/yolov3-tiny.cfg', script_dir+'/yolov3-tiny.weights', labels)
-	# 	cv2.imshow('dm', dephtMapImg)
-	# 	cv2.imshow('left', leftImage[:, :, :3])
-	# 	cv2.imshow('right', rgbRightImage)
-	# 	cv2.waitKey(1)
+
+		# classifiedImg = imgProcess.generate_bounding_boxes(script_dir+'/yolov3-tiny.cfg', script_dir+'/yolov3-tiny.weights', labels)
+		cv2.imshow('dm', mockDephtMapImg)
+		# cv2.imshow('left', leftImage[:, :, :3])
+		cv2.imshow('right', grayRightImage)
+		cv2.waitKey(1)
 
 def process_left(image):
 	global leftData
@@ -149,7 +147,7 @@ try:
 
 	world = client.get_world()
 
-	# world = client.load_world('Town07')
+	world = client.load_world('Town07')
 
 	blueprint_library = world.get_blueprint_library()
 	for actor in world.get_actors():
@@ -159,7 +157,6 @@ try:
 	bp = blueprint_library.filter('model3')[0]
 	# kw = blueprint_library.filter('0010')[0]
 	spawn_point1 = random.choice(world.get_map().get_spawn_points())
-	print(spawn_point1)
 	spawn_point2 = carla.Transform(carla.Location(x=71.5, y=-5, z=.3), carla.Rotation(pitch=0.000000, yaw=-70, roll=0.000000))
 	vehicle = world.spawn_actor(bp, spawn_point2)
 	# motorcicle = world.spawn_actor(kw, spawn_point3)
