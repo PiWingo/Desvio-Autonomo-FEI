@@ -34,7 +34,7 @@ labels = open(script_dir + '/coco.names').read().strip().split("\n")
 
 commands = open("./images/commands.txt", "a")
 
-model = k.models.load_model(r'C:\Users\pietr\Desktop\carla9.10\PythonAPI\examples\seguidor2.h5')
+model = k.models.load_model(r'C:\Users\pietr\Desktop\carla9.10\PythonAPI\examples\seguidor2_gw.h5')
 
 def to_bgra_array(image):
     """Convert a CARLA raw image to a BGRA np array."""
