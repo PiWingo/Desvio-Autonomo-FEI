@@ -35,6 +35,7 @@ class ProcessamentoImagem(object):
 	def generate_bounding_boxes(self, configPath, weightsPath, labels):
 
 		classifiedImg = self.right_image_colored
+
 		(H, W) = classifiedImg.shape[:2]
 		np.random.seed(42)
 		COLORS = np.random.randint(0, 255, size=(len(labels), 3), dtype="uint8")
@@ -59,7 +60,7 @@ class ProcessamentoImagem(object):
 				if confidence > .5:
 					box = detection[0:4] * np.array([W, H, W, H])
 					(centerX, centerY, width, height) = box.astype("int")
-
+					
 					x = int(centerX - (width / 2))
 					y = int(centerY - (height / 2))
 
@@ -68,13 +69,11 @@ class ProcessamentoImagem(object):
 					classIDs.append(classID)
 
 		idxs = cv2.dnn.NMSBoxes(boxes, confidences, 0.5, 0.3)
-
-		print(len(idxs))
+		
 		if len(idxs) > 0:
 			for i in idxs.flatten():
 				(x, y) = (boxes[i][0], boxes[i][1])
 				(w, h) = (boxes[i][2], boxes[i][3])
 				color = [int(c) for c in COLORS[classIDs[i]]]
 				text = "{}: {:.4f}".format(labels[classIDs[i]], confidences[i])
-				print(text)
-		return classifiedImg
+		return boxes, confidences, classIDs, idxs
