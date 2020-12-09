@@ -118,10 +118,10 @@ def round_down(num, divisor):
     return num - (num%divisor)
 
 def process_right(image):
-	global leftData, vehicle, depthmap, middleData
+	global leftData, vehicle, depthmap
 	controls = vehicle.get_control()
 	
-	if leftData != None and depthmap != None and middleData != None:
+	if leftData != None and depthmap != None:
 		global script_dir, labels, model, markovMesh
 		
 		rightImage = np.array(image.raw_data).reshape((IM_HEIGHT, IM_WIDTH, 4))
